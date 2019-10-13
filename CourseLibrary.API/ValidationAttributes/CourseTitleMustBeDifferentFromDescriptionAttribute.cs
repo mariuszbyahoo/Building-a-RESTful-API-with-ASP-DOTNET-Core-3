@@ -20,7 +20,7 @@ namespace CourseLibrary.API.ValidationAttributes
                     new[] { nameof(CourseForCreationDto) });
             }
 
-            return ValidationResult.Success;
+            return ValidationResult.Success; 
         }
     }
 }
