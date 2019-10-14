@@ -98,6 +98,10 @@ namespace CourseLibrary.API.Controllers
             _mapper.Map(course, courseForAuthorFromRepo);
 
             _courseLibraryRepository.UpdateCourse(courseForAuthorFromRepo);
+
+            _courseLibraryRepository.Save();
+            // Returning 204 No Content will be valid the same as a 200 Ok
+            return NoContent();
         }
     }
 }
