@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using CourseLibrary.API.Entities;
 using CourseLibrary.API.Models;
 using CourseLibrary.API.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -75,7 +76,7 @@ namespace CourseLibrary.API.Controllers
         }
 
         [HttpPut("{courseId}")]
-        public ActionResult UpdateCourseForAuthor(Guid authorId, 
+        public IActionResult UpdateCourseForAuthor(Guid authorId, 
             Guid courseId, 
             CourseForUpdateDto course)
         {
@@ -88,7 +89,18 @@ namespace CourseLibrary.API.Controllers
 
             if (courseForAuthorFromRepo == null)
             {
-                return NotFound();
+                var courseToAdd = _mapper.Map<Course>(course);
+                courseToAdd.Id = courseId;
+
+                _courseLibraryRepository.AddCourse(authorId, courseToAdd);
+
+                _courseLibraryRepository.Save();
+
+                var courseToReturn = _mapper.Map<CourseDTO>(courseToAdd);
+
+                return CreatedAtRoute("GetCourseForAuthor",
+                    new { authorId, courseId = courseToReturn.Id },
+                    courseToReturn);
             }
 
             // map the entity to a CourseForUpdateDto
