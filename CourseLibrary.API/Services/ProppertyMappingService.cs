@@ -25,6 +25,39 @@ namespace CourseLibrary.API.Services
             _proppertyMappings.Add(new ProppertyMapping<AuthorDto, Author>(_authorProppertyMapping));
         }
 
+        public bool ValidMappingExistsFor<TSource, TDestination>(string fields)
+        {
+            var proppertyMapping = GetProppertyMapping<TSource, TDestination>();
+
+            if (string.IsNullOrWhiteSpace(fields))
+            {
+                return true;
+            }
+            //the string is separated by "," so we split it.
+            var fieldsAfterSplit = fields.Split(',');
+
+            // run through the fields clauses
+            foreach (var field in fieldsAfterSplit)
+            {
+                // trim
+                var trimmedField = field.Trim();
+
+                // remove everything after the first " " - if the fields
+                // are coming from an orderBy string, this part must be 
+                // ignored
+                var indexOfFirstSpace = trimmedField.IndexOf(" ");
+                var proppertyName = indexOfFirstSpace == -1 ?
+                    trimmedField : trimmedField.Remove(indexOfFirstSpace);
+
+                // find the matching propperty
+                if (!proppertyMapping.ContainsKey(proppertyName))
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+
         public Dictionary<string, ProppertyMappingValue> GetProppertyMapping
             <TSource, TDestination>()
         {
