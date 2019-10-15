@@ -11,6 +11,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using CourseLibrary.API.Entities;
 using Microsoft.Net.Http.Headers;
+using CourseLibrary.API.ActionConstraints;
 
 namespace CourseLibrary.API.Controllers
 {
@@ -164,9 +165,38 @@ namespace CourseLibrary.API.Controllers
         }
 
         [HttpPost(Name = "CreateAuthor")]
+        [RequestHeaderMatchesMediaType("Content-Type",
+            "application/json", // this media type generates a HTTP415 Unsupported Media Type
+            "application/vnd.marvin.authorforcreation+json")]
+        [Consumes("application/vnd.marvin.authorforcreation+json")]
         public ActionResult<AuthorDto> CreateAuthor(AuthorForCreationDto authorForCreation)
         {
             var authorEntity = _mapper.Map<Entities.Author>(authorForCreation);
+            _courseLibraryRepository.AddAuthor(authorEntity);
+            _courseLibraryRepository.Save();
+
+            var authorToReturn = _mapper.Map<AuthorDto>(authorEntity);
+
+            var links = CreateLinksForAuthor(authorToReturn.Id, null);
+
+            var linkedResourceToReturn = authorToReturn.ShapeData(null)
+                as IDictionary<string, object>;
+            linkedResourceToReturn.Add("Links", links);
+
+            return CreatedAtRoute("GetAuthor",
+                new { authorId = linkedResourceToReturn["Id"] },
+                linkedResourceToReturn);
+        }
+
+        [HttpPost(Name = "CreateAuthorWithDateOfDeath")]
+        [RequestHeaderMatchesMediaType("Content-Type",
+            "application/json",
+            "application/vnd.marvin.authorforcreationwithdateofdeath+json")]
+        [Consumes("application/vnd.marvin.authorforcreationwithdateofdeath+json")]
+        public ActionResult<AuthorDto> CreateAuthorWithDateOfDeath
+            (AuthorForCreationWithDateOfDeathDto authorForCreationWithDateOfDeath)
+        {
+            var authorEntity = _mapper.Map<Entities.Author>(authorForCreationWithDateOfDeath);
             _courseLibraryRepository.AddAuthor(authorEntity);
             _courseLibraryRepository.Save();
 
