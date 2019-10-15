@@ -20,5 +20,7 @@ namespace CourseLibrary.API.PerformanceParameters
 
         public string OrderBy { get; set; } = "Name";
 
+        public string Fields { get; set; }
+
     }
 }
