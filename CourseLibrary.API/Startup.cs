@@ -1,6 +1,7 @@
 using AutoMapper;
 using CourseLibrary.API.DbContexts;
 using CourseLibrary.API.Services;
+using Marvin.Cache.Headers;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -28,7 +29,15 @@ namespace CourseLibrary.API
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddHttpCacheHeaders();
+            services.AddHttpCacheHeaders(expirationModelOptions =>
+            {
+                expirationModelOptions.MaxAge = 60;
+                expirationModelOptions.CacheLocation = Marvin.Cache.Headers.CacheLocation.Private;
+            },
+            (validationModelOptions) =>
+            {
+                validationModelOptions.MustRevalidate = true;
+            });
 
             services.AddResponseCaching();
 
