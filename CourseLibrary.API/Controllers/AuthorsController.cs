@@ -77,8 +77,26 @@ namespace CourseLibrary.API.Controllers
             Response.Headers.Add("X-Pagination",
                 JsonSerializer.Serialize(paginationMetadata));
 
-            return Ok(_mapper.Map<IEnumerable<AuthorDto>>(authorsFromRepo)
-                .ShapeData(authorsResourceParameters.Fields));
+            var links = CreateLinksForAuthors(authorsResourceParameters);
+
+            var shapedAuthors = _mapper.Map<IEnumerable<AuthorDto>>(authorsFromRepo)
+                .ShapeData(authorsResourceParameters.Fields);
+
+            var shapedAuthorsWithLinks = shapedAuthors.Select(author =>
+            {
+                var authorAsDictionary = author as IDictionary<string, object>;
+                var authorLinks = CreateLinksForAuthor((Guid)authorAsDictionary["Id"], null);
+                authorAsDictionary.Add("links", authorLinks);
+                return authorAsDictionary;
+            });
+
+            var linkedCollectionResource = new
+            {
+                value = shapedAuthorsWithLinks,
+                links
+            };
+
+            return Ok(linkedCollectionResource);
         }
 
         [HttpGet("{authorId}", Name = "GetAuthor")]
@@ -169,6 +187,7 @@ namespace CourseLibrary.API.Controllers
                             mainCategory = authorsResourceParameters.MainCategory,
                             searchQuery = authorsResourceParameters.SearchQuery
                         });
+
                 case ResourceUriType.NextPage:
                     return Url.Link("GetAuthors",
                         new
@@ -180,6 +199,19 @@ namespace CourseLibrary.API.Controllers
                             mainCategory = authorsResourceParameters.MainCategory,
                             searchQuery = authorsResourceParameters.SearchQuery
                         });
+
+                case ResourceUriType.Current:
+                    return Url.Link("GetAuthors",
+                        new
+                        {
+                            fields = authorsResourceParameters.Fields,
+                            orderby = authorsResourceParameters.OrderBy,
+                            pageNumber = authorsResourceParameters.PageNumber,
+                            pageSize = authorsResourceParameters.PageNumber,
+                            mainCategory = authorsResourceParameters.MainCategory,
+                            searchQuery = authorsResourceParameters.SearchQuery
+                        });
+
                 default:
                     return Url.Link("GetAuthors",
                         new
@@ -230,6 +262,22 @@ namespace CourseLibrary.API.Controllers
 
 
             return links;
+        }
+
+
+        private IEnumerable<LinkDto> CreateLinksForAuthors(
+            AuthorsResourceParameters authorsResourceParameters)
+        {
+            var links = new List<LinkDto>();
+
+            // self
+            links.Add(
+                new LinkDto(CreateAuthorsResourceUri(
+                    authorsResourceParameters, ResourceUriType.Current),
+                    "self", "GET"));
+
+            return links;
+
         }
     }
 }
