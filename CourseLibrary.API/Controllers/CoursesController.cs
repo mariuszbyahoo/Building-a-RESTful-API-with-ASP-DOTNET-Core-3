@@ -30,8 +30,8 @@ namespace CourseLibrary.API.Controllers
                 throw new ArgumentNullException(nameof(mapper));
         }
 
-        [HttpGet]
-        public ActionResult<IEnumerable<CourseDTO>> GetCoursesFromAuthor(Guid authorId)
+        [HttpGet(Name = "GetCoursesForAuthor")]
+        public ActionResult<IEnumerable<CourseDTO>> GetCoursesForAuthor(Guid authorId)
         {
             if (!_courseLibraryRepository.AuthorExists(authorId))
             {
@@ -60,7 +60,7 @@ namespace CourseLibrary.API.Controllers
             return Ok(_mapper.Map<CourseDTO>(courseForAuthorFromRepo));
         }
 
-        [HttpPost]
+        [HttpPost(Name = "CreateCourseForAuthor")]
         public ActionResult<CourseDTO> CreateCourseForAuthor (
             Guid authorId, CourseForCreationDto courseForCreationDto)
         {
